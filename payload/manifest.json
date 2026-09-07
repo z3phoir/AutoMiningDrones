@@ -1,0 +1,90 @@
+{
+  "name": "AutoMiningDrones",
+  "version": "1.1.0",
+  "evejsVersion": "0.12.7.1",
+  "files": [
+    {
+      "path": "server/src/services/drone/droneRuntime.js",
+      "originalHash": "42cb2093be5270b1318c32defbb95a4dd28ba9d6054a9821b95cfa07536a9992",
+      "patchedHash": "4b394a06df6cd0e639a07fe06cadb3ecac55a00fd81d3db446cc16f256698660",
+      "edits": [
+        {
+          "find": "module.exports = {",
+          "replace": "\n// AutoMiningDrones 1.1.0\nconst autoMiningDrones = require(\"./autoMiningDrones\").create({\n  context(session) {\n    const id = toInt(session && (session.characterID || session.charid), 0);\n    if (!id || findSessionByCharacterID(id) !== session || session.stationid || session.stationID) return null;\n    const state = getShipStateForSession(session);\n    if (!state || state.shipEntity.mode === \"WARP\" || state.shipEntity.warpState) return null;\n    return state;\n  },\n  drones: state => listControlledDroneEntities(state.scene, state.shipRecord.itemID),\n  family: classifyDroneMiningYieldKind,\n  idle: (drone, state) => resetDroneToIdle(drone, state.shipEntity, { scene: state.scene, stopMovement: true }),\n  drone: (state, id) => state.scene.getEntityByID(id),\n  eligible(drone, state) {\n    return isDroneEntity(drone) && toInt(drone.controllerID, 0) === toInt(state.shipRecord.itemID, 0) &&\n      !!classifyDroneMiningYieldKind(drone) && !getDronePilotAssignment(drone) &&\n      !drone.droneSalvage && !drone.droneRepair &&\n      getEntitySurfaceDistance(drone, state.shipEntity, state.scene, null, \"automining-control\") <= 20000;\n  },\n  targets(state) {\n    const cache = ensureSceneMiningState(state.scene);\n    if (!cache || !(cache.byEntityID instanceof Map)) return [];\n    return [...cache.byEntityID.values()].filter(m => toNumber(m.remainingQuantity, 0) > 0)\n      .map(m => state.scene.getEntityByID(m.entityID)).filter(Boolean);\n  },\n  allowed(drone, target, state) {\n    const mineable = getMineableState(state.scene, target.itemID);\n    return !!mineable && toNumber(mineable.remainingQuantity, 0) > 0 &&\n      isDroneMiningCompatibleWithTarget(drone, mineable) &&\n      canPlayerCompanionActOnTarget(state.scene, findSessionByCharacterID(state.characterID), drone, state.shipEntity, target) &&\n      getEntitySurfaceDistance(state.shipEntity, target, state.scene, null, \"automining-target\") <= 20000;\n  },\n  distance: (drone, target, state) => getEntitySurfaceDistance(drone, target, state.scene, null, \"automining-nearest\"),\n  full(state, drone, target = null) {\n    const storage = state.autoMiningStorage || resolveShipStorageSnapshotForDrone(state.shipEntity);\n    if (!storage) return false;\n    state.autoMiningStorage = storage;\n    const mineable = getMineableState(state.scene, target ? target.itemID : drone.targetID);\n    const ice = classifyDroneMiningYieldKind(drone) === \"ice\";\n    const yieldID = toInt(mineable && mineable.yieldTypeID, ice ? 16264 : 1230);\n    // Watch the preferred mining hold itself. Do not spill into ordinary cargo\n    // when a ship has a dedicated ore/ice/mining hold that is full.\n    const flag = getPreferredMiningHoldFlagForType(storage.resourceState, yieldID) || ITEM_FLAGS.CARGO_HOLD;\n    const unit = Math.max(0.000001, toNumber(mineable && mineable.unitVolume, ice ? 1000 : 0.1));\n    return getAvailableDroneStorageVolume(storage, flag) + 1e-9 < unit;\n  },\n  mine: commandMineRepeatedly,\n  recall: commandReturnBay,\n  notify(session, message) { session.sendNotification(\"OnRemoteMessage\", \"clientID\", [\"CustomNotify\", { type: \"dict\", entries: [[\"notify\", message]] }]); },\n  error(error) { log.warn(\"[AutoMiningDrones] Automation disabled: \" + String(error && error.message || error)); },\n});\n\nmodule.exports = {\n  autoMiningDronesCommand: autoMiningDrones.command,"
+        },
+        {
+          "find": "function tickScene(scene, now) {",
+          "replace": "function tickScene(scene, now) {\n  autoMiningDrones.tick(scene, now);"
+        },
+        {
+          "find": "function commandReturnDrones(session, rawDroneIDs, commandName) {",
+          "replace": "function commandReturnDrones(session, rawDroneIDs, commandName) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandEngage(session, rawDroneIDs, rawTargetID) {",
+          "replace": "function commandEngage(session, rawDroneIDs, rawTargetID) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandDronePilotAssignment(session, rawAssignedCharacterID, rawDroneIDs, mode) {",
+          "replace": "function commandDronePilotAssignment(session, rawAssignedCharacterID, rawDroneIDs, mode) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandMineRepeatedly(session, rawDroneIDs, rawTargetID) {",
+          "replace": "function commandMineRepeatedly(session, rawDroneIDs, rawTargetID) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandSalvage(session, rawDroneIDs, rawTargetID) {",
+          "replace": "function commandSalvage(session, rawDroneIDs, rawTargetID) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandAbandonDrone(session, rawDroneIDs) {",
+          "replace": "function commandAbandonDrone(session, rawDroneIDs) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function commandReconnectToDrones(session, rawDroneIDs) {",
+          "replace": "function commandReconnectToDrones(session, rawDroneIDs) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function scoopDrone(session, rawDroneIDs) {",
+          "replace": "function scoopDrone(session, rawDroneIDs) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "function scoopDroneToCargo(session, rawDroneID) {",
+          "replace": "function scoopDroneToCargo(session, rawDroneID) {\n  autoMiningDrones.manual(session);"
+        },
+        {
+          "find": "      idledCount += 1;",
+          "replace": "      autoMiningDrones.depleted(scene, droneEntity);\n      idledCount += 1;"
+        },
+        {
+          "find": "  if (\n    deltaResult.data &&\n    deltaResult.data.depleted === true\n  ) {\n    resetDroneToIdle(droneEntity, controllerEntity, {\n      scene,\n      stopMovement: true,\n    });\n    return;\n  }",
+          "replace": "  if (\n    deltaResult.data &&\n    deltaResult.data.depleted === true\n  ) {\n    resetDroneToIdle(droneEntity, controllerEntity, {\n      scene,\n      stopMovement: true,\n    });\n    autoMiningDrones.depleted(scene, droneEntity);\n    return;\n  }"
+        },
+        {
+          "find": "  const destination = resolveDroneMiningDestination(",
+          "replace": "  if (autoMiningDrones.beforeCycle(scene, droneEntity)) return;\n\n  const destination = resolveDroneMiningDestination("
+        }
+      ]
+    },
+    {
+      "path": "server/src/services/chat/chatCommands.js",
+      "originalHash": "e5c594badcde9476d324aac4ec771faec7f676af837a0021b9d07a9576b8454a",
+      "patchedHash": "22c53df923071186f3f1a5ecade50adbd7845ee49d8997985853359bc3bccc67",
+      "edits": [
+        {
+          "find": "  \"/miner\",",
+          "replace": "  \"/autominingdrones on [focus|spread] | off | status\",\n  \"/miner\","
+        },
+        {
+          "find": "  if (command === \"miner\") {",
+          "replace": "  if (command === \"autominingdrones\") {\n    if (!hasStaffDebugRole(session)) {\n      return handledResult(chatHub, session, options, \"AutoMiningDrones requires a staff/GM role.\");\n    }\n    const result = require(\"../drone/droneRuntime\").autoMiningDronesCommand(session, argumentText);\n    return handledResult(chatHub, session, options, result);\n  }\n\n  if (command === \"miner\") {"
+        }
+      ]
+    }
+  ],
+  "added": {
+    "path": "server/src/services/drone/autoMiningDrones.js",
+    "file": "autoMiningDrones.js",
+    "sha256": "dadfeb3d53482010c88bda326fa8ffa05479db676422684f0c11c60e855ed54e"
+  }
+}

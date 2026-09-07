@@ -1,0 +1,2 @@
+# Preserve package bytes used by compatibility checks.
+* -text
