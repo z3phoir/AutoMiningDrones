@@ -2,7 +2,7 @@
 
 Automatic asteroid selection and full-hold recall for launched mining drones in EveJS.
 
-Version **1.1.0**. Supports the **EveJS 0.12.7.1** server files identified by the included compatibility checks. Windows PowerShell 5.1 or newer is required. Docker installations require Docker Desktop with Docker Compose. No additional Node.js installation is needed for the Docker installer.
+Version **1.1.0**. Supports the **EveJS 0.12.7.1** server files identified by the included compatibility checks. The launcher method needs EveJS Launcher **1.0.55 or newer** in **Native** mode. The separate installer requires Windows PowerShell 5.1 or newer. Docker installations require Docker Desktop with Docker Compose. No additional Node.js installation is needed for the Docker installer.
 
 ## What it does
 
@@ -13,9 +13,23 @@ Version **1.1.0**. Supports the **EveJS 0.12.7.1** server files identified by th
 - Uses EveJS's existing mining cycles, yields, inventory delivery, movement and drone-bay return handlers.
 - Recalls enrolled mining drones and switches automation off when the preferred mining hold cannot fit another unit of the resource. Ordinary cargo space does not keep automation running when a dedicated mining hold is full. Ships without a dedicated mining hold use their cargo hold.
 
-This is a server patch. Players use the normal client and can watch their drones work. Client files are not modified.
+The launcher applies the server patch in memory while Game runs. The separate installer patches files on disk. Players use the normal client; client files are not modified.
 
-## Install
+## Install with EveJS Launcher (Native)
+
+1. Download this repository using **Code > Download ZIP**. Keep the ZIP as it is; no extraction is needed.
+2. Open **Mods** in EveJS Launcher **1.0.55 or newer** and click **Add ZIP**.
+3. Select the downloaded ZIP and finish the import. Turn on the toggle beside **AutoMiningDrones**.
+4. Start Game. If Game is already running, log out and restart it first.
+5. Log in with a staff/GM character and enter `/amd status`. A reply such as **AutoMiningDrones off.** confirms the command is available. Use `/amd on` to turn automation on after launching mining drones.
+
+No `Install.bat` or `StartServerWithMods.bat` is needed for this method. The loader checks the same exact server-file hashes as the installer and applies its patches only in memory. Disabling the mod and restarting Game removes those patches. To uninstall, use **Remove** on its Mods row and restart Game.
+
+**Already installed with Install.bat?** Stop Game and use that copy's **Uninstall.bat** to restore the original files before adding the ZIP. Do not combine both installation methods. Also remove any older launcher copy before importing this one.
+
+The launcher package currently supports **Native** mode. For Docker, use the separate installer below.
+
+## Install with the separate installer (Native or Docker)
 
 Download this repository using **Code > Download ZIP**, extract it, and rename the extracted `AutoMiningDrones-main` folder to `AutoMiningDrones`. Copy that entire folder into the existing `tools` folder in your EveJS installation. Keep the `payload` folder beside `Manage.ps1`.
 
@@ -70,6 +84,16 @@ The Docker installer supports a single existing server container, with applicati
 Undock, launch mining drones, and stay out of warp. Then enter:
 
 ```text
+/amd on
+/amd on focus
+/amd on spread
+/amd status
+/amd off
+```
+
+`/amd` is a short alias for `/autominingdrones`. Both accept the same options, including `/amd focus` and `/amd spread`. The original commands still work:
+
+```text
 /autominingdrones on focus
 /autominingdrones on spread
 /autominingdrones status
@@ -97,7 +121,7 @@ The command uses EveJS's existing staff-debug permission check. A normal charact
 - Newly launched drones are not enrolled automatically; run `on` again to refresh the group.
 - Other non-depletion interruptions stop the affected drone's participation. Fix the problem and use `on` again.
 
-## Status
+## Status for the separate installer
 
 Double-click **Status.bat**. The installation root is detected automatically, or you can run:
 
@@ -107,7 +131,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Manage.ps1 -Action Sta
 
 For native installs this verifies patched-file checksums. For Docker it checks that the server container uses the recorded patch image. In-game status reports whether your character's automation is enabled.
 
-## Uninstall
+## Uninstall the separate installer
 
 1. Log out of the game.
 2. Double-click **Uninstall.bat**. The same EveJS root is detected automatically.
@@ -143,3 +167,13 @@ Keep the `.autominingdrones` folder and both locally tagged images until uninsta
 - **Docker startup failed:** the installer attempts to restore the original image. Read the error output and run Status. If it reports `recovery-required`, retain `.autominingdrones` and use the recorded original Compose override to restore the server; do not remove volumes.
 
 This release should be tested with a small group of inexpensive mining drones before relying on it for longer sessions.
+
+## Loader verification for contributors
+
+With Node.js and a supported, unpatched EveJS checkout (including its development dependencies):
+
+```powershell
+node tests/verify-loader.cjs "E:\EveJS"
+```
+
+The check copies only the two compatible server source files into a temporary fixture. It verifies command registration, staff permissions, patch conflicts and unchanged source files without starting a server. The loader and installer share `payload/manifest.json` and `payload/autoMiningDrones.js`.
