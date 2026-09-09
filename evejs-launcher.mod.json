@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 3,
+  "id": "autominingdrones",
+  "displayName": "AutoMiningDrones",
+  "version": "1.1.0",
+  "description": "Automatic asteroid selection and full-hold recall for mining drones.",
+  "kind": "loader",
+  "supportedBackends": [
+    "native"
+  ],
+  "activation": {
+    "strategy": "loader_rename"
+  },
+  "restart": "game_server",
+  "compatibility": {
+    "evejsVersions": [
+      "0.12.7.1"
+    ]
+  }
+}

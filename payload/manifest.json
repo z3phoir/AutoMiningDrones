@@ -69,15 +69,15 @@
     {
       "path": "server/src/services/chat/chatCommands.js",
       "originalHash": "e5c594badcde9476d324aac4ec771faec7f676af837a0021b9d07a9576b8454a",
-      "patchedHash": "22c53df923071186f3f1a5ecade50adbd7845ee49d8997985853359bc3bccc67",
+      "patchedHash": "8f9f2e6b818824ff5a685fe4a04fc15057812b0ad22090099ff3cde037fed076",
       "edits": [
         {
           "find": "  \"/miner\",",
-          "replace": "  \"/autominingdrones on [focus|spread] | off | status\",\n  \"/miner\","
+          "replace": "  \"/autominingdrones on [focus|spread] | off | status\",\n  \"/amd on [focus|spread] | off | status\",\n  \"/miner\","
         },
         {
           "find": "  if (command === \"miner\") {",
-          "replace": "  if (command === \"autominingdrones\") {\n    if (!hasStaffDebugRole(session)) {\n      return handledResult(chatHub, session, options, \"AutoMiningDrones requires a staff/GM role.\");\n    }\n    const result = require(\"../drone/droneRuntime\").autoMiningDronesCommand(session, argumentText);\n    return handledResult(chatHub, session, options, result);\n  }\n\n  if (command === \"miner\") {"
+          "replace": "  if (command === \"autominingdrones\" || command === \"amd\") {\n    if (!hasStaffDebugRole(session)) {\n      return handledResult(chatHub, session, options, \"AutoMiningDrones requires a staff/GM role.\");\n    }\n    const result = require(\"../drone/droneRuntime\").autoMiningDronesCommand(session, argumentText);\n    return handledResult(chatHub, session, options, result);\n  }\n\n  if (command === \"miner\") {"
         }
       ]
     }
